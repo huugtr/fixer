@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Touch Intro</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --red:#e11d48;
+      --red2:#ff2d55;
+    }
+
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    html, body { width:100%; height:100%; }
+    body{
+      font-family: Georgia, "Times New Roman", Times, serif; /* serif title */
+      background: var(--bg);
+      overflow: hidden;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      cursor: pointer;
+    }
+
+    .page{
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    #bubbles {
+      position:absolute;
+      inset:0;
+      overflow:hidden;
+      pointer-events:none;
+      z-index:0;
+    }
+
+    /* ===== Modern RED bubbles (minimal width + soft blur entrance) ===== */
+    .bubble{
+      position:absolute;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 10px 16px;
+      border-radius: 14px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: .2px;
+      color:#fff;
+      background: linear-gradient(135deg, rgba(255,45,85,.98), rgba(225,29,72,.98));
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 14px 40px rgba(225,29,72,.25);
+      white-space: nowrap;
+      opacity: 0;
+      transform: scale(.92);
+      animation: popInOut var(--dur) cubic-bezier(.22,.8,.22,1) forwards;
+      will-change: transform, opacity, filter;
+    }
+
+    @keyframes popInOut{
+      0%   { opacity:0; transform: scale(.9); filter: blur(6px); }
+      20%  { opacity:1; transform: scale(1); filter: blur(0); }
+      80%  { opacity:1; transform: scale(1); }
+      100% { opacity:0; transform: scale(.96); }
+    }
+
+    .center{
+      position: relative;
+      z-index: 1;
+      display:flex;
+      flex-direction: column;
+      align-items:center;
+      padding: 22px 26px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.75);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.10);
+      border: 1px solid rgba(0,0,0,.06);
+      min-width: min(520px, 90vw);
+      text-align:center;
+    }
+
+    .title{
+      font-size: clamp(22px, 3.4vw, 42px);
+      font-weight: 900;
+      color: #111827;
+      line-height: 1.15;
+    }
+
+    .pulse{
+      display:inline-flex;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--red);
+      box-shadow: 0 0 0 rgba(225,29,72,.5);
+      animation: pulse 1.4s ease-in-out infinite;
+      margin-inline-end: 10px;
+      vertical-align: middle;
+    }
+
+    @keyframes pulse{
+      0%   { box-shadow: 0 0 0 0 rgba(225,29,72,.35); transform: scale(1); }
+      70%  { box-shadow: 0 0 0 14px rgba(225,29,72,0); transform: scale(1.05); }
+      100% { box-shadow: 0 0 0 0 rgba(225,29,72,0); transform: scale(1); }
+    }
+
+  </style>
+</head>
+
+<body>
+  <section class="page" id="page1">
+    <div id="bubbles"></div>
+
+    <div class="center" id="centerBox">
+      <div class="title" id="touchText"><span class="pulse"></span>Ekrana Dokunun</div>
+    </div>
+  </section>
+
+  <script>
+    const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdoNJzd9eJCIK-oYyLwI22qBCHMumPHMszAfDIBWsT6aFGfGg/viewform?usp=dialog';
+
+    document.addEventListener('pointerdown', () => {
+      window.location.href = FORM_URL;
+    }, { passive:true });
+
+    const touchText = document.getElementById('touchText');
+    const bubblesLayer = document.getElementById('bubbles');
+    const centerBox = document.getElementById('centerBox');
+
+    const phrases = ['Touch the screen', 'Touchez l’écran', 'Ekrana Dokunun'];
+    let idx = 0;
+    setInterval(() => {
+      idx = (idx + 1) % phrases.length;
+      touchText.innerHTML = '<span class="pulse"></span>' + phrases[idx];
+    }, 1200);
+
+    const hellos = [
+      'Hello','Hi','Hey',
+      'Merhaba','Selam',
+      'Bonjour','Salut',
+      'Hola','Buenos días',
+      'Ciao','Salve',
+      'Hallo','Guten Tag',
+      'Olá','Oi',
+      'Hej','Hallå',
+      'Hei','Tere',
+      'Привет','Здравствуйте',
+      'مرحبا','أهلاً وسهلاً',
+      'שלום','Shalom',
+      'नमस्ते','Namaskar',
+      'ਸਤ ਸ੍ਰੀ ਅਕਾਲ',
+      'வணக்கம்',
+      'నమస్తే',
+      'สวัสดี',
+      'မင်္ဂလာပါ',
+      '你好','您好',
+      'こんにちは','やあ',
+      '안녕하세요',
+      'Xin chào',
+      'Selamat pagi','Apa khabar',
+      'Habari','Jambo',
+      'Sawubona',
+      'Halo'
+    ];
+
+    function rand(min, max){ return Math.random() * (max - min) + min; }
+
+    function rectsOverlap(a, b, pad = 10){
+      return !(a.x + a.w + pad <= b.x || b.x + b.w + pad <= a.x || a.y + a.h + pad <= b.y || b.y + b.h + pad <= a.y);
+    }
+
+    const activeRects = [];
+
+    function spawnBubble(){
+      const el = document.createElement('div');
+      el.className = 'bubble';
+
+      const durSec = rand(4.2, 6.2);
+      el.style.setProperty('--dur', durSec.toFixed(2) + 's');
+      el.textContent = hellos[Math.floor(Math.random()*hellos.length)];
+      bubblesLayer.appendChild(el);
+
+      el.style.left = '-9999px';
+      el.style.top = '-9999px';
+
+      const viewW = window.innerWidth;
+      const viewH = window.innerHeight;
+      const box = el.getBoundingClientRect();
+      const w = box.width;
+      const h = box.height;
+
+      const safe = centerBox.getBoundingClientRect();
+      const safeRect = { x:safe.left-20, y:safe.top-20, w:safe.width+40, h:safe.height+40 };
+
+      let placed=false, finalX=0, finalY=0;
+
+      for(let i=0;i<80;i++){
+        const x = rand(20, viewW - w - 20);
+        const y = rand(20, viewH - h - 20);
+        const candidate = {x,y,w,h};
+        if(rectsOverlap(candidate, safeRect)) continue;
+        if(activeRects.some(r=>rectsOverlap(candidate,r))) continue;
+        finalX=x; finalY=y; placed=true;
+        break;
+      }
+
+      if(!placed){ el.remove(); return; }
+
+      el.style.left = finalX + 'px';
+      el.style.top = finalY + 'px';
+
+      const ttl = durSec*1000;
+      activeRects.push({x:finalX,y:finalY,w,h,expires:performance.now()+ttl});
+
+      setTimeout(()=>{
+        el.remove();
+        const now = performance.now();
+        for(let i=activeRects.length-1;i>=0;i--){
+          if(activeRects[i].expires <= now) activeRects.splice(i,1);
+        }
+      }, ttl);
+    }
+
+    for(let i=0;i<8;i++) setTimeout(spawnBubble, i * 120);
+    setInterval(spawnBubble, 420);
+  </script>
+</body>
+</html>
